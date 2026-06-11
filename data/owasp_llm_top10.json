@@ -1,0 +1,66 @@
+{
+  "version": "2025",
+  "source": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+  "entries": [
+    {
+      "id": "LLM01:2025",
+      "name": "Prompt Injection",
+      "description": "Attackers manipulate LLM behaviour by crafting inputs that override system instructions or cause unintended actions. Can be direct (via user input) or indirect (via external content the LLM retrieves).",
+      "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
+    },
+    {
+      "id": "LLM02:2025",
+      "name": "Sensitive Information Disclosure",
+      "description": "LLMs may expose sensitive data from training, context windows, or retrieved documents through normal interactions or adversarial prompting.",
+      "url": "https://genai.owasp.org/llmrisk/llm02-sensitive-information-disclosure/"
+    },
+    {
+      "id": "LLM03:2025",
+      "name": "Supply Chain Vulnerabilities",
+      "description": "Risks introduced through third-party model providers, datasets, plugins, or fine-tuned models that are outside the organisation's direct control.",
+      "url": "https://genai.owasp.org/llmrisk/llm03-supply-chain/"
+    },
+    {
+      "id": "LLM04:2025",
+      "name": "Data and Model Poisoning",
+      "description": "Malicious manipulation of training data or fine-tuning processes to introduce backdoors, biases, or vulnerabilities into the model.",
+      "url": "https://genai.owasp.org/llmrisk/llm04-data-model-poisoning/"
+    },
+    {
+      "id": "LLM05:2025",
+      "name": "Insecure Output Handling",
+      "description": "Downstream components consume LLM output without sufficient validation, enabling injection attacks such as XSS, SQLi, or command injection via model responses.",
+      "url": "https://genai.owasp.org/llmrisk/llm05-insecure-output-handling/"
+    },
+    {
+      "id": "LLM06:2025",
+      "name": "Excessive Agency",
+      "description": "LLM-based agents are granted more permissions, capabilities, or autonomy than required, enabling unintended or harmful real-world actions.",
+      "url": "https://genai.owasp.org/llmrisk/llm06-excessive-agency/"
+    },
+    {
+      "id": "LLM07:2025",
+      "name": "System Prompt Leakage",
+      "description": "System prompts containing sensitive instructions, credentials, or business logic are exposed through adversarial prompting or verbose error responses.",
+      "url": "https://genai.owasp.org/llmrisk/llm07-system-prompt-leakage/"
+    },
+    {
+      "id": "LLM08:2025",
+      "name": "Vector and Embedding Weaknesses",
+      "description": "Vulnerabilities in RAG pipelines including poisoned vector stores, embedding inversion attacks, and insufficient access controls on retrieved documents.",
+      "url": "https://genai.owasp.org/llmrisk/llm08-vector-and-embedding-weaknesses/"
+    },
+    {
+      "id": "LLM09:2025",
+      "name": "Misinformation",
+      "description": "LLMs generate plausible but incorrect information that downstream systems or users act on without verification, leading to harmful decisions.",
+      "url": "https://genai.owasp.org/llmrisk/llm09-misinformation/"
+    },
+    {
+      "id": "LLM10:2025",
+      "name": "Unbounded Consumption",
+      "description": "Uncontrolled resource usage by LLM workloads enables denial of service, runaway costs, or side-channel attacks through inference timing.",
+      "url": "https://genai.owasp.org/llmrisk/llm10-unbounded-consumption/"
+    }
+  ]
+}

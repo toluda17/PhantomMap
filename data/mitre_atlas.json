@@ -1,0 +1,76 @@
+{
+  "version": "4.5",
+  "source": "https://atlas.mitre.org/",
+  "techniques": [
+    {
+      "id": "AML.T0051",
+      "name": "LLM Prompt Injection",
+      "tactic": "Initial Access",
+      "description": "Adversaries craft inputs to manipulate LLM behaviour, bypass safety measures, or extract information by injecting instructions into prompts.",
+      "url": "https://atlas.mitre.org/techniques/AML.T0051"
+    },
+    {
+      "id": "AML.T0054",
+      "name": "LLM Jailbreak",
+      "tactic": "Initial Access",
+      "description": "Adversaries use specialised prompting techniques to bypass safety guardrails and cause the model to produce restricted or harmful outputs.",
+      "url": "https://atlas.mitre.org/techniques/AML.T0054"
+    },
+    {
+      "id": "AML.T0040",
+      "name": "ML Model Inference API Access",
+      "tactic": "Initial Access",
+      "description": "Adversaries interact with a victim's ML model through an exposed inference API to extract information or probe model behaviour.",
+      "url": "https://atlas.mitre.org/techniques/AML.T0040"
+    },
+    {
+      "id": "AML.T0037",
+      "name": "Data from Information Repositories",
+      "tactic": "Collection",
+      "description": "Adversaries extract sensitive data from information repositories accessible to the LLM, including vector stores and retrieval pipelines.",
+      "url": "https://atlas.mitre.org/techniques/AML.T0037"
+    },
+    {
+      "id": "AML.T0035",
+      "name": "ML Artifact Collection",
+      "tactic": "Collection",
+      "description": "Adversaries collect ML artefacts such as model weights, embeddings, or training data to enable downstream attacks.",
+      "url": "https://atlas.mitre.org/techniques/AML.T0035"
+    },
+    {
+      "id": "AML.T0048",
+      "name": "Backdoor ML Model",
+      "tactic": "Persistence",
+      "description": "Adversaries insert backdoors into ML models during training or fine-tuning that trigger specific behaviours on crafted inputs.",
+      "url": "https://atlas.mitre.org/techniques/AML.T0048"
+    },
+    {
+      "id": "AML.T0020",
+      "name": "Poison Training Data",
+      "tactic": "Persistence",
+      "description": "Adversaries introduce malicious examples into training datasets to manipulate model behaviour after deployment.",
+      "url": "https://atlas.mitre.org/techniques/AML.T0020"
+    },
+    {
+      "id": "AML.T0043",
+      "name": "Craft Adversarial Data",
+      "tactic": "Execution",
+      "description": "Adversaries craft inputs specifically designed to cause misclassification, policy bypass, or unintended model behaviour.",
+      "url": "https://atlas.mitre.org/techniques/AML.T0043"
+    },
+    {
+      "id": "AML.T0047",
+      "name": "ML-Enabled Product Abuse",
+      "tactic": "Impact",
+      "description": "Adversaries abuse ML-enabled product features to cause unintended real-world actions, resource exhaustion, or reputational harm.",
+      "url": "https://atlas.mitre.org/techniques/AML.T0047"
+    },
+    {
+      "id": "AML.T0044",
+      "name": "Full ML Model Access",
+      "tactic": "Exfiltration",
+      "description": "Adversaries gain full access to a target ML model, enabling extraction of weights, training data, or embedded sensitive information.",
+      "url": "https://atlas.mitre.org/techniques/AML.T0044"
+    }
+  ]
+}
