@@ -1,0 +1,110 @@
+# PhantomMap Application Profile
+# Target: Acme Customer Support Bot
+# Description: A RAG-based customer support chatbot with CRM integration.
+#              Customers interact via a public web interface. The LLM retrieves
+#              context from an internal knowledge base and can raise support
+#              tickets directly in the CRM on the customer's behalf.
+
+name: "Acme Customer Support Bot"
+description: >
+  A production RAG chatbot handling customer support queries for an e-commerce
+  platform. The bot retrieves product and policy documentation from a vector
+  database, generates responses via an external LLM provider, and can create
+  and update support tickets in a connected CRM system without human review.
+version: "1.0"
+
+# Does a human review LLM actions before they're executed?
+human_in_the_loop: false
+
+notes: >
+  The CRM integration uses a service account with write access to all customer
+  records. The vector database contains some internal pricing and policy
+  documents not intended for customer visibility. No output sanitisation is
+  applied before ticket content is written to the CRM.
+
+components:
+  - name: "Public Chat Interface"
+    type: "user_interface"
+    description: "Web-based chat UI accessible to unauthenticated users."
+    accepts_external_input: true
+    handles_pii: false
+
+  - name: "Application Backend"
+    type: "backend"
+    description: "Orchestration layer that manages prompt construction, retrieval, and CRM actions."
+    accepts_external_input: false
+    handles_pii: true
+
+  - name: "LLM API"
+    type: "llm_api"
+    description: "External LLM provider API (e.g. OpenAI). Receives constructed prompts and returns completions."
+    accepts_external_input: false
+    handles_pii: true
+
+  - name: "Vector Database"
+    type: "vector_db"
+    description: "Stores embeddings of internal product docs, FAQs, and policy documents. Queried at inference time."
+    accepts_external_input: false
+    handles_pii: false
+
+  - name: "CRM System"
+    type: "crm"
+    description: "Customer relationship management system. The bot can create and update tickets on behalf of users."
+    accepts_external_input: false
+    handles_pii: true
+
+data_flows:
+  - source: "Public Chat Interface"
+    destination: "Application Backend"
+    description: "Raw user messages sent to the backend for processing."
+    carries_sensitive_data: false
+    crosses_trust_boundary: true
+
+  - source: "Application Backend"
+    destination: "Vector Database"
+    description: "Semantic search queries to retrieve relevant documents."
+    carries_sensitive_data: false
+    crosses_trust_boundary: false
+
+  - source: "Vector Database"
+    destination: "Application Backend"
+    description: "Retrieved document chunks injected into the LLM prompt context."
+    carries_sensitive_data: true
+    crosses_trust_boundary: false
+
+  - source: "Application Backend"
+    destination: "LLM API"
+    description: "Constructed prompt including system instructions, retrieved context, and user message."
+    carries_sensitive_data: true
+    crosses_trust_boundary: true
+
+  - source: "LLM API"
+    destination: "Application Backend"
+    description: "LLM completion returned to the backend for downstream processing."
+    carries_sensitive_data: false
+    crosses_trust_boundary: true
+
+  - source: "Application Backend"
+    destination: "CRM System"
+    description: "Ticket creation and update actions triggered directly by LLM output."
+    carries_sensitive_data: true
+    crosses_trust_boundary: true
+
+integrations:
+  - name: "OpenAI API"
+    type: "llm_provider"
+    description: "Third-party LLM provider. Model behaviour and training data are outside organisational control."
+    trusted: false
+    has_write_access: false
+
+  - name: "Pinecone Vector DB"
+    type: "vector_db"
+    description: "Managed vector database service hosting internal documentation embeddings."
+    trusted: true
+    has_write_access: false
+
+  - name: "Salesforce CRM"
+    type: "crm"
+    description: "CRM system with a service account that has write access to all customer records."
+    trusted: true
+    has_write_access: true
