@@ -1,0 +1,167 @@
+"""
+markdown_report.py
+
+Generates a human-readable Markdown threat report from PhantomMap findings.
+Suitable for inclusion in deployment reviews, security assessments, or
+portfolio documentation.
+"""
+
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import List
+from phantommap.models.finding import Finding, Severity
+from phantommap.models.app_profile import AppProfile
+from phantommap.config import OUTPUT_DIR, REPORT_TOOL_NAME, REPORT_TOOL_VERSION
+from phantommap.config import OWASP_LLM_VERSION, MITRE_ATLAS_VERSION
+from phantommap.logger import get_logger
+
+logger = get_logger(__name__)
+
+SEVERITY_EMOJI = {
+    Severity.CRITICAL : "🔴",
+    Severity.HIGH     : "🟠",
+    Severity.MEDIUM   : "🟡",
+    Severity.LOW      : "🟢",
+    Severity.INFO     : "⚪",
+}
+
+PRIORITY_LABEL = {
+    "immediate"  : "⚡ Immediate",
+    "short_term" : "📅 Short-term",
+    "long_term"  : "🗺️ Long-term",
+}
+
+
+def _severity_summary(findings: List[Finding]) -> str:
+    counts = {}
+    for f in findings:
+        counts[f.severity.value] = counts.get(f.severity.value, 0) + 1
+
+    order = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"]
+    lines = []
+    for sev in order:
+        if sev in counts:
+            emoji = SEVERITY_EMOJI.get(Severity(sev), "")
+            lines.append(f"- {emoji} **{sev}**: {counts[sev]}")
+    return "\n".join(lines)
+
+
+def _finding_block(finding: Finding) -> str:
+    emoji = SEVERITY_EMOJI.get(finding.severity, "")
+    lines = [
+        f"---",
+        f"",
+        f"### {finding.id} — {finding.title}",
+        f"",
+        f"| Field | Value |",
+        f"|---|---|",
+        f"| **Severity** | {emoji} {finding.severity.value} |",
+        f"| **Score** | {finding.score} / 10.0 |",
+        f"| **Affected Surface** | `{finding.affected_surface}` |",
+        f"| **Rule** | `{finding.rule_id}` |",
+        f"",
+        f"**Description**",
+        f"",
+        f"{finding.description}",
+        f"",
+    ]
+
+    if finding.notes:
+        lines += [f"> **Note:** {finding.notes}", f""]
+
+    if finding.owasp_references:
+        lines.append("**OWASP LLM Top 10 References**")
+        lines.append("")
+        for ref in finding.owasp_references:
+            lines.append(f"- [{ref.id} — {ref.name}]({ref.url})")
+        lines.append("")
+
+    if finding.atlas_references:
+        lines.append("**MITRE ATLAS References**")
+        lines.append("")
+        for ref in finding.atlas_references:
+            lines.append(f"- [{ref.id} — {ref.name}]({ref.url}) *(Tactic: {ref.tactic})*")
+        lines.append("")
+
+    if finding.controls:
+        lines.append("**Recommended Controls**")
+        lines.append("")
+        for ctrl in finding.controls:
+            priority_label = PRIORITY_LABEL.get(ctrl.priority, ctrl.priority)
+            lines.append(f"**{ctrl.id} — {ctrl.title}** {priority_label}")
+            lines.append(f"{ctrl.description}")
+            lines.append("")
+
+    return "\n".join(lines)
+
+
+def generate_markdown_report(profile: AppProfile, findings: List[Finding]) -> Path:
+    """
+    Generates a Markdown threat report and writes it to the output directory.
+    Returns the path to the written file.
+    """
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    filename = f"phantommap_{timestamp}.md"
+    output_path = OUTPUT_DIR / filename
+
+    highest_score = max((f.score for f in findings), default=0.0)
+    generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+    lines = [
+        f"# PhantomMap Threat Report",
+        f"",
+        f"| | |",
+        f"|---|---|",
+        f"| **Application** | {profile.name} |",
+        f"| **Version** | {profile.version} |",
+        f"| **Generated** | {generated_at} |",
+        f"| **Tool** | {REPORT_TOOL_NAME} v{REPORT_TOOL_VERSION} |",
+        f"| **Frameworks** | OWASP LLM Top 10 {OWASP_LLM_VERSION}, MITRE ATLAS {MITRE_ATLAS_VERSION} |",
+        f"| **Human-in-the-Loop** | {'Yes' if profile.human_in_the_loop else 'No'} |",
+        f"",
+        f"---",
+        f"",
+        f"## Executive Summary",
+        f"",
+        f"{profile.description}",
+        f"",
+        f"PhantomMap identified **{len(findings)} findings** across this application's "
+        f"attack surface. The highest risk score is **{highest_score} / 10.0**. "
+        f"{'No human-in-the-loop review is in place, which amplifies the impact of several findings.' if not profile.human_in_the_loop else 'Human-in-the-loop review is in place.'}",
+        f"",
+        f"### Severity Breakdown",
+        f"",
+        _severity_summary(findings),
+        f"",
+        f"---",
+        f"",
+        f"## Findings",
+        f"",
+    ]
+
+    for finding in findings:
+        lines.append(_finding_block(finding))
+
+    lines += [
+        f"",
+        f"---",
+        f"",
+        f"## About This Report",
+        f"",
+        f"Generated by [{REPORT_TOOL_NAME}](https://github.com/toluda17/PhantomMap) "
+        f"v{REPORT_TOOL_VERSION}. Findings are cross-referenced against the "
+        f"[OWASP Top 10 for LLM Applications {OWASP_LLM_VERSION}]"
+        f"(https://owasp.org/www-project-top-10-for-large-language-model-applications/) "
+        f"and [MITRE ATLAS v{MITRE_ATLAS_VERSION}](https://atlas.mitre.org/). "
+        f"This report is intended to support AI deployment security reviews and "
+        f"does not constitute a penetration test or formal security audit.",
+        f"",
+    ]
+
+    with open(output_path, "w") as fp:
+        fp.write("\n".join(lines))
+
+    logger.info(f"Markdown report written to {output_path}")
+    return output_path
