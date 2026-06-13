@@ -1,8 +1,8 @@
 # PhantomMap
 
-A Python tool that maps attack surfaces in LLM-integrated and agentic applications, cross-references identified risks against the OWASP Top 10 for LLMs and MITRE ATLAS, and generates structured threat reports with prioritised control recommendations.
+I built PhantomMap to map attack surfaces in LLM-integrated and agentic applications. It cross-references identified risks against the OWASP Top 10 for LLMs and MITRE ATLAS, and generates structured threat reports with prioritised control recommendations.
 
-Built as a portfolio project by a contributor to the [OWASP GenAI Security Project](https://owasp.org/www-project-top-10-for-large-language-model-applications/).
+I contribute to the [OWASP GenAI Security Project](https://owasp.org/www-project-top-10-for-large-language-model-applications/), so this isn't just a technical exercise — I wanted a tool that reflects how I actually think about AI security risk.
 
 ---
 
@@ -10,30 +10,27 @@ Built as a portfolio project by a contributor to the [OWASP GenAI Security Proje
 
 You give PhantomMap a YAML description of an LLM-integrated application — its components, data flows, integrations, and trust boundaries. It runs the profile through a rule-based risk engine, annotates each finding with OWASP LLM Top 10 2025 and MITRE ATLAS 4.5 references, scores the findings, attaches prioritised control recommendations, and writes a full threat report in JSON and Markdown.
 
-The output is the kind of structured risk assessment you'd use in a real AI deployment security review.
+The output is the kind of structured risk assessment you'd hand to a security team doing an AI deployment review.
 
 ---
 
 ## Demo
 
-Target application: a RAG-based customer support chatbot with a CRM integration, no human-in-the-loop review, and an untrusted external LLM provider.
+I tested it against a RAG-based customer support chatbot with a CRM integration, no human-in-the-loop review, and an untrusted external LLM provider.
 
-\`\`\`bash
+```bash
 python3 -m phantommap.runner profiles/example_rag_app.yaml
-\`\`\`
+```
 
-![Pipeline run](docs/screenshots/01_pipeline_run.webp)
 
-11 findings identified across 14 attack surfaces. 2 CRITICAL, 8 HIGH, 1 MEDIUM. Highest score: 10.0 / 10.0.
+11 findings across 14 attack surfaces. 2 CRITICAL, 8 HIGH, 1 MEDIUM. Highest score: 10.0 / 10.0.
 
-![Markdown report header](docs/screenshots/02_markdown_report_header.webp)
-![Markdown report findings](docs/screenshots/03_markdown_report_findings.webp)
 
 ---
 
 ## Architecture
 
-\`\`\`
+```
 Input (YAML profile)
         ↓
    Surface Mapper      ← extracts components, flows, integrations as attack surfaces
@@ -45,7 +42,7 @@ Input (YAML profile)
    Control Advisor     ← attaches prioritised control recommendations
         ↓
    Report Generator    ← writes JSON + Markdown threat reports to output/
-\`\`\`
+```
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for a full breakdown of each component.
 
@@ -84,41 +81,41 @@ Each finding gets a composite score from 0.0 to 10.0:
 
 ## Setup
 
-\`\`\`bash
+```bash
 git clone https://github.com/toluda17/PhantomMap.git
 cd PhantomMap
 pip3 install -r requirements.txt
 python3 -m phantommap.runner profiles/example_rag_app.yaml
-\`\`\`
+```
 
-Reports are written to \`output/\` as \`phantommap_<timestamp>.json\` and \`phantommap_<timestamp>.md\`.
+Reports are written to `output/` as `phantommap_<timestamp>.json` and `phantommap_<timestamp>.md`.
 
 ---
 
 ## Project structure
 
-\`\`\`
+```
 phantommap/
 ├── models/          # AppProfile and Finding dataclasses
-├── surface_mapper/  # Extracts attack surfaces from profile
-├── risk_engine/     # Rule-based risk detection (5 rules)
+├── surface_mapper/  # extracts attack surfaces from the profile
+├── risk_engine/     # 5 rule-based detections
 ├── framework_mapper/# OWASP LLM + MITRE ATLAS annotation
-├── control_advisor/ # Prioritised control recommendations
+├── control_advisor/ # prioritised control recommendations
 └── report_generator/# JSON and Markdown output
 
 data/                # OWASP LLM Top 10 and MITRE ATLAS reference JSON
 profiles/            # YAML application profiles (input)
-output/              # Generated reports (gitignored)
-\`\`\`
+output/              # generated reports (gitignored)
+```
 
 ---
 
 ## Writing a profile
 
-Copy \`profiles/example_rag_app.yaml\` and describe your target application. Key fields that drive risk detection:
+Copy `profiles/example_rag_app.yaml` and describe your target application. The fields that drive detection:
 
-- \`human_in_the_loop: false\` — triggers excessive agency findings
-- \`accepts_external_input: true\` on a component — triggers prompt injection
-- \`carries_sensitive_data: true\` + \`crosses_trust_boundary: true\` on a flow — triggers data exfiltration
-- \`trusted: false\` on an integration — triggers supply chain risk
-- \`has_write_access: true\` on an integration — triggers excessive agency
+- `human_in_the_loop: false` — triggers excessive agency findings
+- `accepts_external_input: true` on a component — triggers prompt injection
+- `carries_sensitive_data: true` + `crosses_trust_boundary: true` on a flow — triggers data exfiltration
+- `trusted: false` on an integration — triggers supply chain risk
+- `has_write_access: true` on an integration — triggers excessive agency
